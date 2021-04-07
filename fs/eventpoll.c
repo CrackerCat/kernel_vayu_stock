@@ -1394,7 +1394,9 @@ static int ep_create_wakeup_source(struct epitem *epi)
 	struct wakeup_source *ws;
 
 	if (!epi->ep->ws) {
-		epi->ep->ws = wakeup_source_register(NULL, "eventpoll");
+		char *event_name = kasprintf(GFP_KERNEL, "eventpoll-%s", current->comm);
+		epi->ep->ws = wakeup_source_register(NULL, event_name);
+		kfree(event_name);
 		if (!epi->ep->ws)
 			return -ENOMEM;
 	}
