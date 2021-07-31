@@ -469,16 +469,8 @@ static int dsi_panel_power_on(struct dsi_panel *panel)
 {
 	int rc = 0;
 
-	if (panel->is_tddi_flag) {
-		if (!panel->tddi_doubleclick_flag || panel->panel_dead_flag) {
-			rc = dsi_pwr_enable_regulator(&panel->power_info, true);
-			if (panel->panel_dead_flag)
-				panel->panel_dead_flag = false;
-		}
-	} else {
-		rc = dsi_pwr_enable_regulator(&panel->power_info, true);
-	}
-
+	if (!panel->tddi_doubleclick_flag)
+	rc = dsi_pwr_enable_regulator(&panel->power_info, true);
 	if (rc) {
 		pr_err("[%s] failed to enable vregs, rc=%d\n", panel->name, rc);
 		goto exit;
@@ -525,15 +517,9 @@ static int dsi_panel_power_off(struct dsi_panel *panel)
 	if (gpio_is_valid(panel->reset_config.disp_en_gpio))
 		gpio_set_value(panel->reset_config.disp_en_gpio, 0);
 
-	if (panel->is_tddi_flag) {
-		if (!panel->tddi_doubleclick_flag || panel->panel_dead_flag) {
-			if (gpio_is_valid(panel->reset_config.reset_gpio))
-				gpio_set_value(panel->reset_config.reset_gpio, 0);
-		}
-	} else {
-		if (gpio_is_valid(panel->reset_config.reset_gpio))
-			gpio_set_value(panel->reset_config.reset_gpio, 0);
-	}
+	if (!panel->tddi_doubleclick_flag)
+	if (gpio_is_valid(panel->reset_config.reset_gpio))
+		gpio_set_value(panel->reset_config.reset_gpio, 0);
 
 	if (gpio_is_valid(panel->reset_config.lcd_mode_sel_gpio))
 		gpio_set_value(panel->reset_config.lcd_mode_sel_gpio, 0);
@@ -544,17 +530,10 @@ static int dsi_panel_power_off(struct dsi_panel *panel)
 		       rc);
 	}
 
-	if (panel->is_tddi_flag) {
-		if(!panel->tddi_doubleclick_flag || panel->panel_dead_flag) {
-			rc = dsi_pwr_enable_regulator(&panel->power_info, false);
-			if (rc)
-				pr_err("[%s] failed to enable vregs, rc=%d\n", panel->name, rc);
-		}
-	} else {
-		rc = dsi_pwr_enable_regulator(&panel->power_info, false);
-		if (rc)
-			pr_err("[%s] failed to enable vregs, rc=%d\n", panel->name, rc);
-	}
+	if(!panel->tddi_doubleclick_flag)
+	rc = dsi_pwr_enable_regulator(&panel->power_info, false);
+	if (rc)
+		pr_err("[%s] failed to enable vregs, rc=%d\n", panel->name, rc);
 
 	return rc;
 }
@@ -5627,8 +5606,6 @@ error:
 	mutex_unlock(&panel->panel_lock);
 	return rc;
 }
-
-
 
 static int dsi_panel_get_lockdown_from_cmdline(unsigned char *plockdowninfo)
 {
